@@ -1,0 +1,129 @@
+import clase
+import os.path
+import pickle
+
+
+def validar_entre(sup, inf, msj):
+    num = int(input(msj))
+    while num < inf or num > sup:
+        num = int(input('Error...' + msj))
+    return num
+
+
+def menu():
+    print("1. Crear archivo")
+    print("2. ")
+    print("3. ")
+    print("4. ")
+    print("5. ")
+    print("6. ")
+    print("7. ")
+    print("8. ")
+    print("9. Salir")
+
+    op = validar_entre(9, 1, 'Ingrese una opción entre 1 y 9:')
+    return op
+
+
+def generar_archivo_binario(fdt, fdb):
+    if not os.path.exists(fdt):
+        print("El archivo", fdt, "no existe...")
+        print("Controle y vuelva por aquí...")
+        return
+
+    # apertura del archivo de entrada...
+    datos = open(fdt, "rt")
+
+    # leo la linea de timestamp...
+    ts = datos.readline()
+
+    # leo la linea de encabezados...
+    hd = datos.readline()
+
+    # apertura del archivo de salida...
+    m = open(fdb, "wb")
+    for linea in datos:
+        d = linea.split(",")
+        cp = d[0]
+        de = d[1]
+        te = int(d[2])
+        fp = int(d[3])
+        env = clase.Envio(cp, de, te, fp)
+        pickle.dump(env, m)
+
+    datos.close()
+    m.close()
+
+
+def mostrar_archivo_binario(fdb):
+    if not os.path.exists(fdb):
+        print("El archivo", fdb, "no existe...")
+        print("Controle y vuelva por aquí...")
+        return
+
+    print("Listado general de envios...")
+    c = 0
+    m = open(fdb, "rb")
+    t = os.path.getsize(fdb)
+    while m.tell() < t:
+        env = pickle.load(m)
+        print(env)
+        c += 1
+    m.close()
+    print("Se listaron", c, "registros...")
+
+
+def validar_mayor_que(lim):
+    n = int(input('Ingrese el numero:'))
+    while n < lim:
+        print('Ingrese un dato valido...')
+        n = int(input('Ingrese el numero:'))
+        return n
+
+
+def cargar_datos():
+    global fdb
+    m = open(fdb, 'ab')
+    print('Cantidad de envios:')
+    n = validar_mayor_que(0)
+
+    print('Ingrese los datos de los envios')
+    for i in range(n):
+        print('Codigo postal')
+        cp = validar_mayor_que(0)
+
+        direccion = input('Direccion:')
+
+        print('Tipo de envio:')
+        tipo = validar_mayor_que(0)
+
+        print('Forma de pago:')
+        forma_pago = validar_mayor_que(0)
+
+        envio = clase.Envio(cp, direccion, tipo, forma_pago)
+        pickle.dump(envio, m)
+
+
+
+
+def principal():
+    fdt = "envios-tp4"
+    fdb = "envios-tp4.dat"
+    op = 0
+    while op != 9:
+        op = menu()
+
+        if op == 1:
+            generar_archivo_binario(fdt, fdb)
+            print("Terminado...")
+            mostrar_archivo_binario(fdb)
+        if op == 2:
+            cargar_datos()
+
+
+
+
+
+
+if __name__ == "__main__":
+    principal()
