@@ -1,3 +1,5 @@
+import io
+
 from clase import *
 import os.path
 import pickle
@@ -48,13 +50,12 @@ def generar_archivo_binario(fdt, fdb):
     m = open(fdb, "wb")
     for linea in datos:
         d = linea.split(",")
-        if len(d) < 4:
-            cp = d[0]
-            de = d[1]
-            te = int(d[2])
-            fp = int(d[3])
-            env = Envio(cp, de, te, fp)
-            pickle.dump(env, m)
+        cp = d[0]
+        de = d[1]
+        te = int(d[2])
+        fp = int(d[3])
+        env = Envio(cp, de, te, fp)
+        pickle.dump(env, m)
 
     datos.close()
     m.close()
@@ -115,32 +116,107 @@ def cargar_datos(fdb):
     return e
 
 
-def mostrar_datos(e):
-    if len(e) == 0:
-        print('No se cargaron datos')
+def buscar(fdb, m, x):
+    t = os.path.getsize(fdb)
+
+    fp_inicial = m.tell()
+    m.seek(0, io.SEEK_SET)
+
+    posicion = -1
+    while m.tell() < t:
+        fp = m.tell()
+        env = pickle.load(m)
+        if env.codigo == x:
+            posicion = fp
+            break
+    m.seek(fp_inicial, io.SEEK_SET)
+    return posicion
+
+
+def buscar_cp(fdb):
+    ac = 0
+    if not os.path.exists(fdb):
+        print('El archivo', fdb, 'no existe')
         return
 
-    print('Listado de envios:')
-    for envio in e:
-        print(envio) #verificar si se muestra el pais
+    m = open(fdb, 'rb')
 
-
-def buscar_cp(e, x):
-    ac = 0
-    if len(e) == 0:
-        print('No se cargaron datos...')
-
-    x = input('Ingrese el codigo postal a buscar')
-    print('Listado de envios con codigos postales iguales a:', x)
-    for envio in e:
-        if e.codigo == x:
+    print('Codigo postal a buscar: ')
+    cp = input('Ingrese el codigo postal a buscar:')
+    for line in m:
+        pos = buscar(fdb, m, cp)
+        if pos != -1:
+            m.seek(pos, io.SEEK_SET)
+            envio = pickle.load(m)
+            print('Envio encontrado')
+            print('Se encontrararon los envios:', envio, 'en la posicion:', line)
             ac += 1
-            print(envio)
-            print('Cantidad de envios mostrados', ac)
+        else:
+            print('El codigo postal que busca no se encontro.')
+    print('Cantidad de envios con ese codigo postal:', ac)
+    m.close()
 
 
+def buscar_2(fdb, m, x):
+    t = os.path.getsize(fdb)
+
+    fp_inicial = m.tell()
+    m.seek(0, io.SEEK_SET)
+
+    posicion = -1
+    while m.tell() < t:
+        fp = m.tell()
+        env = pickle.load(m)
+        if env.direccion == x:
+            posicion = fp
+            break
+    m.seek(fp_inicial, io.SEEK_SET)
+    return posicion
+
+
+def buscar_direccion(fdb):
+    if not os.path.exists(fdb):
+        print('El archivo', fdb, 'no existe')
+        return
+
+    m = open(fdb, 'rb')
+
+    print('Direccion de envio a buscar: ')
+    direc = input('Ingrese la direccion de envio a buscar:')
+    pos = buscar_2(fdb, m, direc)
+    if pos != -1:
+        m.seek(pos, io.SEEK_SET)
+        envio = pickle.load(m)
+        print('Envio encontrado')
+        print(envio)
+    else:
+        print('El codigo postal que busca no se encontro.')
+
+    m.close()
+
+
+def count(tipo_envio, forma_pago):
+    conteo = [[0] * 7 for f in range(2)]
+    n = len(tipo_envio)
+    for i in range(n):
+        f = tipo_envio[i]
+        c = forma_pago[i]
+        conteo[f][c] += 1
+    return conteo
+
+
+def display_count(conteo):
+    filas, columnas = len(conteo), len(conteo[0])
+    print()
+    print('Conteo de tipos de envio y forma de pago')
+    for f in range(filas):
+        for c in range(columnas):
+            if conteo[f][c] != 0:
+                print('Tipo de envio', f, '\tForma', c, '\tCantidad:', conteo[f][c])
+                
+                
 def principal():
-    fdt = "envios-tp4"
+    fdt = "envios-tp4.csv"
     fdb = "envios-tp4.dat"
     op = 0
     e = []
@@ -150,14 +226,16 @@ def principal():
         if op == 1:
             generar_archivo_binario(fdt, fdb)
             print("Terminado...")
-            mostrar_archivo_binario(fdb)
         if op == 2:
             cargar_datos(fdb)
         if op == 3:
-            mostrar_datos(e)
+            mostrar_archivo_binario(fdb)
         if op == 4:
-            cp2 = input('Ingrese el codigo postal a buscar:')
-            buscar_cp(e, cp2)
+            buscar_cp(fdb)
+        if op == 5:
+            buscar_direccion(fdb)
+        if op == 6:
+            display_count(conteo)
 
 
 if __name__ == "__main__":
