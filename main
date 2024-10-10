@@ -195,31 +195,42 @@ def buscar_direccion(fdb):
     m.close()
 
 
-def count(tipo_envio, forma_pago):
-    conteo = [[0] * 7 for f in range(2)]
-    n = len(tipo_envio)
-    for i in range(n):
-        f = tipo_envio[i]
-        c = forma_pago[i]
-        conteo[f][c] += 1
+def conteo(fdb):
+    if not os.path.exists(fdb):
+        print('No se encontro el archivo', fdb)
+        return
+
+    tbm = os.path.getsize(fdb)
+    m = open(fdb, 'rb')
+
+    conteo = [[0] * 7 for f in range(3)]
+
+    while m.tell() < tbm:
+        envio = pickle.load(m)
+        f = envio.tipo_envio
+        c = envio.forma_pago
+
+        if 0 <= f < 7 and 0 <= c <= 2:
+            conteo[c][f] += 1
+
+    m.close()
     return conteo
 
 
-def display_count(conteo):
-    filas, columnas = len(conteo), len(conteo[0])
-    print()
-    print('Conteo de tipos de envio y forma de pago')
-    for f in range(filas):
-        for c in range(columnas):
+def generar_matriz(conteo):
+    print('Conteo de envios por tipo de envio y forma de pago:')
+    for f in range(1, 3):
+        for c in range(7):
             if conteo[f][c] != 0:
-                print('Tipo de envio', f, '\tForma', c, '\tCantidad:', conteo[f][c])
-                
-                
+                print('Tipo de envio', c, '\tForma', f, '\tCantidad:', conteo[f][c])
+
+
 def principal():
     fdt = "envios-tp4.csv"
     fdb = "envios-tp4.dat"
     op = 0
     e = []
+    conte = conteo(fdb)
     while op != 9:
         op = menu()
 
@@ -235,7 +246,8 @@ def principal():
         if op == 5:
             buscar_direccion(fdb)
         if op == 6:
-            display_count(conteo)
+            if conte:
+                generar_matriz(conte)
 
 
 if __name__ == "__main__":
