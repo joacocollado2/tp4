@@ -246,7 +246,7 @@ def shellsort(envios):
 
 def calcular_importe_promedio(fdb):
     if not os.path.exists(fdb):
-        print("El archivo", fdb, "no existe...")
+        print('El archivo', fdb, 'no existe...')
         return None
 
     m = open(fdb, 'rb')
@@ -267,12 +267,13 @@ def calcular_importe_promedio(fdb):
 
 
 def procesar_envios_superiores_al_promedio(fdb):
-    promedio = calcular_importe_promedio(fdb)
+    promedio = round(calcular_importe_promedio(fdb), 2)
     if promedio is None:
-        print("No se pudo calcular el importe promedio.")
+        print('No se pudo calcular el importe promedio.')
         return
 
-    print(f"Importe promedio: {promedio}")
+    print('Importe promedio: ', promedio)
+    input('Precione Enter para continuar...')
 
     envios_mayores = []
 
@@ -298,8 +299,8 @@ def procesar_envios_superiores_al_promedio(fdb):
 
 
 def principal():
-    fdt = "envios-tp4.csv"
-    fdb = "envios-tp4.dat"
+    fdt = 'envios-tp4.csv'
+    fdb = 'envios-tp4.dat'
     op = 0
     conte = conteo(fdb)
     while op != 9:
